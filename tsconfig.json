@@ -1,17 +1,19 @@
 {
   "compilerOptions": {
-    "target": "esnext",
-    "moduleResolution": "node",
-    "strictFunctionTypes": true,
-
+    "target": "ES2020",
     "module": "CommonJS",
+    "moduleResolution": "Node",
+    "rootDir": "./src",
     "outDir": "./dist",
+
+    // ⬇️ This is the critical part for .d.ts
+    "declaration": true,
+    "declarationMap": true,
+
     "strict": true,
     "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "baseUrl": "./",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  }
+    "skipLibCheck": true,
+    "lib": ["ES2020"]
+  },
+  "include": ["src"]
 }
