@@ -1,12 +1,13 @@
 // src/index.ts
 import { Curve } from "./src";
+export const DECIMALS = 10n ** 8n;
 
 async function main() {
   const cfg = {
-    total_supply: 1_000_000_000_000n,
-    sell_amount: 500_000_000_000n,
-    vt: 10_000_000n,
-    mc_target_sats: 21_000_000_000_000_000n,
+    total_supply: 1_000_000_000n * DECIMALS,
+    sell_amount: 720_000_000n * DECIMALS,
+    vt: 250_000_000n * DECIMALS,
+    mc_target_sats: 70_000_000n * DECIMALS,
   };
 
   const curveRes = await Curve.create(cfg);

@@ -1,0 +1,4 @@
+/native/pkg
+/native/target
+/dist
+/node_modules

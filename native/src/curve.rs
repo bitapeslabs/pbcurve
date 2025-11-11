@@ -1,5 +1,13 @@
 // src/lib.rs
 
+use core::convert::TryInto;
+use uint::construct_uint;
+
+construct_uint! {
+    /// Minimal fixed-width 256-bit integer used for precise intermediate math.
+    pub struct U256(4);
+}
+
 /// Basic integer type for amounts (sats, token base units).
 
 #[derive(Debug, Clone, Copy)]
@@ -8,6 +16,26 @@ pub enum CurveError {
     OutOfRange,
     ZeroInput,
     ExceedsPool,
+}
+
+fn mul_u256(a: U256, b: U256) -> Result<U256, CurveError> {
+    let (res, overflow) = a.overflowing_mul(b);
+    if overflow {
+        Err(CurveError::InvalidConfig)
+    } else {
+        Ok(res)
+    }
+}
+
+fn narrow_u256(value: U256) -> Result<u128, CurveError> {
+    let mut buf = [0u8; 32];
+    value.to_big_endian(&mut buf);
+    let (hi, lo) = buf.split_at(16);
+    if hi.iter().any(|&b| b != 0) {
+        Err(CurveError::InvalidConfig)
+    } else {
+        Ok(u128::from_be_bytes(lo.try_into().expect("slice sized to 16 bytes")))
+    }
 }
 
 /// Config for the curve:
@@ -85,21 +113,19 @@ impl Curve {
             .ok_or(CurveError::InvalidConfig)?;
 
         // X0 ≈ mc_target_sats * vt^2 / (Y0 * total_supply)
-        let vt_sq: u128 = vt.checked_mul(vt).ok_or(CurveError::InvalidConfig)?;
-        let num = mc.checked_mul(vt_sq).ok_or(CurveError::InvalidConfig)?;
-        let den = y0
-            .checked_mul(total_supply)
-            .ok_or(CurveError::InvalidConfig)?;
-        if den == 0 {
+        let vt_sq = mul_u256(U256::from(vt), U256::from(vt))?;
+        let num = mul_u256(U256::from(mc), vt_sq)?;
+        let den = mul_u256(U256::from(y0), U256::from(total_supply))?;
+        if den.is_zero() {
             return Err(CurveError::InvalidConfig);
         }
 
-        let x0 = num.saturating_div(den);
+        let x0 = narrow_u256(num / den)?;
         if x0 == 0 {
             return Err(CurveError::InvalidConfig);
         }
 
-        let k = x0.checked_mul(y0).ok_or(CurveError::InvalidConfig)?;
+        let k = narrow_u256(mul_u256(U256::from(x0), U256::from(y0))?)?;
 
         Ok(Self {
             total_supply,

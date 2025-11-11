@@ -1,6 +1,6 @@
 {
   "name": "pbcurve",
-  "version": "1.0.1",
+  "version": "1.0.5",
   "description": "Pizza's impl agnostic bonding curve lib with ts bindings",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,12 +11,12 @@
   "scripts": {
     "build:wasm": "cd native && wasm-pack build --target nodejs --release --out-dir ./pkg --out-name curve_wasm",
     "build:ts": "tsc -p tsconfig.json",
-    "build": "npm run build:wasm && npm run build:ts",
-    "prepublishOnly": "npm run build"
+    "build": "npm run build:wasm && npm run build:ts"
   },
   "author": "encloinc",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^24.10.0"
+    "@types/node": "^24.10.0",
+    "typescript": "^5.9.3"
   }
 }
