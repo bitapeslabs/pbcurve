@@ -4,6 +4,6 @@
     "module": "ES2020",
     "outDir": "./dist/web"
   },
-  "include": ["src/web.ts"],
+  "include": ["src/web.ts", "src/next.ts"],
   "exclude": []
 }

@@ -50,3 +50,37 @@ const raised = curve.cumulativeQuoteToStep(25_000n * DECIMALS).expect("quote");
 ```
 
 `initWebCurveWasm` accepts anything `wasm-pack`’s loader does (URL, `Request`, `Response`, or an ArrayBuffer/Module), so you can hook it into your bundler/asset pipeline easily. Subsequent `Curve.create` calls reuse the initialized module automatically.
+
+### Helpers
+
+Call `curve.mcSatsAtStep(step)` to estimate the FDV (in sats) at any point on the curve. It runs inside the wasm core so you avoid duplicating the math in JS/TS.
+
+### Next.js / Turbopack (fetching WASM over HTTP)
+
+Next.js' Turbopack loader still cannot bundle `.wasm` modules that wasm-pack emits. The package therefore ships a `pbcurve/next` entry point that lazily fetches the WebAssembly blob at runtime:
+
+1. When you install `pbcurve`, a `postinstall` hook copies `native/pkg-web/curve_wasm_bg.wasm` into your app's existing `public/pbcurve/` directory (it only runs if a `public/` folder is present, so Node-only apps are untouched). Commit that file so deployments can serve `/pbcurve/curve_wasm_bg.wasm`. If you disable npm scripts or do not have a `public/` directory, copy the file manually: `cp node_modules/pbcurve/native/pkg-web/curve_wasm_bg.wasm public/pbcurve/`.
+2. Import from `pbcurve/next` and pass the public URL of the wasm file each time you create a curve (usually `/pbcurve/curve_wasm_bg.wasm`). The factory fetches + instantiates the module once and reuses it afterwards.
+
+```ts
+import { Curve } from "pbcurve/next";
+
+const DECIMALS = 10n ** 8n;
+const cfg = {
+  total_supply: 1_000_000n * DECIMALS,
+  sell_amount: 500_000n * DECIMALS,
+  vt: 250_000n * DECIMALS,
+  mc_target_sats: 10_000_000n * DECIMALS,
+};
+
+const wasmUrl = "/pbcurve/curve_wasm_bg.wasm";
+const curve = (
+  await Curve.create(cfg, {
+    wasmUrl,
+    // optional: fetch, requestInit
+  })
+).expect("curve init failed");
+const price = curve.snapshot(0n).expect("snapshot").x;
+```
+
+Pass a custom `fetch` implementation (and `requestInit`) if you need authenticated fetches or want to run the loader from within a different runtime like Next.js Route Handlers. Relative URLs are resolved against `window.location.origin`, so on the server (or during `next dev`’s SSR pass) you must provide an absolute `wasmUrl` or guard the initialization so it only runs in the browser.

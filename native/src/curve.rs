@@ -34,7 +34,9 @@ fn narrow_u256(value: U256) -> Result<u128, CurveError> {
     if hi.iter().any(|&b| b != 0) {
         Err(CurveError::InvalidConfig)
     } else {
-        Ok(u128::from_be_bytes(lo.try_into().expect("slice sized to 16 bytes")))
+        Ok(u128::from_be_bytes(
+            lo.try_into().expect("slice sized to 16 bytes"),
+        ))
     }
 }
 
@@ -203,11 +205,7 @@ impl Curve {
         Ok((new_step, dy))
     }
 
-    pub fn asset_out_given_quote_in(
-        &self,
-        step: u128,
-        quote_in: u128,
-    ) -> Result<u128, CurveError> {
+    pub fn asset_out_given_quote_in(&self, step: u128, quote_in: u128) -> Result<u128, CurveError> {
         let (_, tokens_out) = self.mint(step, quote_in)?;
         Ok(tokens_out)
     }
@@ -229,9 +227,7 @@ impl Curve {
 
         let x = self.x_from_y(y);
         let x_final = self.k / self.vt;
-        let max_quote = x_final
-            .checked_sub(x)
-            .ok_or(CurveError::InvalidConfig)?;
+        let max_quote = x_final.checked_sub(x).ok_or(CurveError::InvalidConfig)?;
         if max_quote == 0 {
             return Err(CurveError::ExceedsPool);
         }
@@ -279,16 +275,23 @@ impl Curve {
         x_final.saturating_sub(self.x0)
     }
 
+    /// Approximate FDV (sats) at a given step: price(step) * total_supply.
+    pub fn mc_sats_at_step(&self, step: u128) -> Result<u128, CurveError> {
+        let snap = self.snapshot(step)?;
+        if snap.y == 0 {
+            return Err(CurveError::InvalidConfig);
+        }
+
+        let num = mul_u256(U256::from(snap.x), U256::from(self.total_supply))?;
+        let mc = num / U256::from(snap.y);
+        Ok(narrow_u256(mc)?)
+    }
+
     /// Helper: total sats raised if we sell the full window [0 -> sellable_tokens].
     /// total_supplyhis is "curve-native": X_final - X0, where X_final = floor(k / vt).
     pub fn final_mc_sats(&self) -> Result<u128, CurveError> {
-        let vt_sq = self
-            .vt
-            .checked_mul(self.vt)
-            .ok_or(CurveError::InvalidConfig)?;
-        let p_final = self.k / vt_sq;
-
-        Ok(p_final.saturating_mul(self.total_supply))
+        let final_mc_sats = self.mc_sats_at_step(self.sell_amount)?;
+        Ok(final_mc_sats)
     }
 
     pub fn progress_at_step(&self, step: u128) -> u128 {

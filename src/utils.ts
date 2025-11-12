@@ -16,4 +16,3 @@ export function toErrorMessage(e: unknown): string {
 export function u128ToString(v: bigint): string {
   return v.toString(10);
 }
-

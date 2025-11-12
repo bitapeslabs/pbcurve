@@ -18,11 +18,15 @@ async function main() {
 
   console.log("x0 =", snap.x.toString());
   console.log("y0 =", snap.y.toString());
-
+  let initMcSats = curve
+    .mcSatsAtStep(2176851576513508n)
+    .expect("mc sats failed");
+  console.log("mcSats at step 0 =", Number(initMcSats));
   let cum = curve
     .cumulativeQuoteToStep(720_000_000n * DECIMALS)
     .expect("cumulative quote failed");
-  console.log("cumulative quote to step 100M =", (cum / DECIMALS).toString());
+  console.log("cumulative quote to step 720M =", (cum / DECIMALS).toString());
+  console.log(curve.finalMcSats());
 }
 
 main().catch(console.error);

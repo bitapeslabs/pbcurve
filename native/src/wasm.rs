@@ -80,6 +80,16 @@ impl WasmCurve {
         Ok(v.to_string())
     }
 
+    /// FDV (market cap) in sats at a given step.
+    pub fn mc_sats_at_step(&self, step: String) -> Result<String, JsValue> {
+        let step_u = parse_u128_dec(&step)?;
+        let mc = self
+            .inner
+            .mc_sats_at_step(step_u)
+            .map_err(|e| e.to_js())?;
+        Ok(mc.to_string())
+    }
+
     /// Progress at given step, as decimal string.
     pub fn progress_at_step(&self, step: String) -> Result<String, JsValue> {
         let step_u = parse_u128_dec(&step)?;

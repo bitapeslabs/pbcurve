@@ -1,6 +1,6 @@
 {
   "name": "pbcurve",
-  "version": "1.1.0",
+  "version": "1.1.5",
   "description": "Pizza's impl agnostic bonding curve lib with ts bindings",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -17,17 +17,24 @@
     "./web": {
       "types": "./dist/web/web.d.ts",
       "default": "./dist/web/web.js"
+    },
+    "./next": {
+      "types": "./dist/web/next.d.ts",
+      "default": "./dist/web/next.js"
     }
   },
   "files": [
     "dist",
     "native/pkg",
-    "native/pkg-web"
+    "native/pkg-web",
+    "scripts/ensure-wasm-npmignore.cjs",
+    "scripts/postinstall.cjs"
   ],
   "scripts": {
+    "postinstall": "node ./scripts/postinstall.cjs",
     "build:wasm:node": "cd native && wasm-pack build --target nodejs --release --out-dir ./pkg --out-name curve_wasm",
     "build:wasm:web": "cd native && wasm-pack build --target web --release --out-dir ./pkg-web --out-name curve_wasm",
-    "build:wasm": "npm run build:wasm:node && npm run build:wasm:web",
+    "build:wasm": "npm run build:wasm:node && npm run build:wasm:web && node ./scripts/ensure-wasm-npmignore.cjs",
     "build:ts:node": "tsc -p tsconfig.json",
     "build:ts:web": "tsc -p tsconfig.web.json && node ./scripts/write-web-package.cjs",
     "build:ts": "npm run build:ts:node && npm run build:ts:web",
