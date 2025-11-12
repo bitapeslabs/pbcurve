@@ -1,4 +1,4 @@
-import { BoxedResponse } from "./boxed";
+import { BoxedResponse } from "bxrs";
 
 export interface IPbCurveSnapshot {
   step: bigint;
@@ -30,6 +30,8 @@ export type PbCurveWrapperErrorType =
   | "CurveSnapshotError"
   | "CurveFinalMcError"
   | "CurveProgressError"
-  | "CurveSimulateMintsError";
+  | "CurveSimulateMintsError"
+  | "CurveAssetOutError"
+  | "CurveQuoteInError";
 
 export type PbCurveResult<T> = BoxedResponse<T, PbCurveWrapperErrorType>;

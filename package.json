@@ -1,22 +1,43 @@
 {
   "name": "pbcurve",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Pizza's impl agnostic bonding curve lib with ts bindings",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.js"
+    },
+    "./node": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./web": {
+      "types": "./dist/web/web.d.ts",
+      "default": "./dist/web/web.js"
+    }
+  },
   "files": [
     "dist",
-    "native/pkg"
+    "native/pkg",
+    "native/pkg-web"
   ],
   "scripts": {
-    "build:wasm": "cd native && wasm-pack build --target nodejs --release --out-dir ./pkg --out-name curve_wasm",
-    "build:ts": "tsc -p tsconfig.json",
+    "build:wasm:node": "cd native && wasm-pack build --target nodejs --release --out-dir ./pkg --out-name curve_wasm",
+    "build:wasm:web": "cd native && wasm-pack build --target web --release --out-dir ./pkg-web --out-name curve_wasm",
+    "build:wasm": "npm run build:wasm:node && npm run build:wasm:web",
+    "build:ts:node": "tsc -p tsconfig.json",
+    "build:ts:web": "tsc -p tsconfig.web.json && node ./scripts/write-web-package.cjs",
+    "build:ts": "npm run build:ts:node && npm run build:ts:web",
     "build": "npm run build:wasm && npm run build:ts"
   },
   "author": "encloinc",
   "license": "ISC",
   "dependencies": {
     "@types/node": "^24.10.0",
+    "bxrs": "^1.0.0",
     "typescript": "^5.9.3"
   }
 }

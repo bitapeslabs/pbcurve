@@ -15,5 +15,6 @@
     "skipLibCheck": true,
     "lib": ["ES2020"]
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/web.ts"]
 }

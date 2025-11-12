@@ -86,6 +86,36 @@ impl WasmCurve {
         Ok(self.inner.progress_at_step(step_u).to_string())
     }
 
+    /// Asset out (tokens) for a given quote-in amount at a specific step.
+    pub fn asset_out_given_quote_in(
+        &self,
+        step: String,
+        quote_in: String,
+    ) -> Result<String, JsValue> {
+        let step_u = parse_u128_dec(&step)?;
+        let quote_u = parse_u128_dec(&quote_in)?;
+        let out = self
+            .inner
+            .asset_out_given_quote_in(step_u, quote_u)
+            .map_err(|e| e.to_js())?;
+        Ok(out.to_string())
+    }
+
+    /// Quote (sats) required to receive a target asset amount at a specific step.
+    pub fn quote_in_given_asset_out(
+        &self,
+        step: String,
+        asset_out: String,
+    ) -> Result<String, JsValue> {
+        let step_u = parse_u128_dec(&step)?;
+        let asset_u = parse_u128_dec(&asset_out)?;
+        let quote = self
+            .inner
+            .quote_in_given_asset_out(step_u, asset_u)
+            .map_err(|e| e.to_js())?;
+        Ok(quote.to_string())
+    }
+
     /// Simulate a batch of mints.
     ///
     /// `mints` is an array of decimal-string u128 sats_in values.

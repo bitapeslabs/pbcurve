@@ -203,6 +203,55 @@ impl Curve {
         Ok((new_step, dy))
     }
 
+    pub fn asset_out_given_quote_in(
+        &self,
+        step: u128,
+        quote_in: u128,
+    ) -> Result<u128, CurveError> {
+        let (_, tokens_out) = self.mint(step, quote_in)?;
+        Ok(tokens_out)
+    }
+
+    pub fn quote_in_given_asset_out(
+        &self,
+        step: u128,
+        asset_out: u128,
+    ) -> Result<u128, CurveError> {
+        if asset_out == 0 {
+            return Ok(0);
+        }
+
+        let y = self.y_at(step)?;
+        let max_tokens = y.saturating_sub(self.vt);
+        if asset_out > max_tokens {
+            return Err(CurveError::ExceedsPool);
+        }
+
+        let x = self.x_from_y(y);
+        let x_final = self.k / self.vt;
+        let max_quote = x_final
+            .checked_sub(x)
+            .ok_or(CurveError::InvalidConfig)?;
+        if max_quote == 0 {
+            return Err(CurveError::ExceedsPool);
+        }
+
+        let mut lo = 1u128;
+        let mut hi = max_quote;
+
+        while lo < hi {
+            let mid = lo + (hi - lo) / 2;
+            let out = self.asset_out_given_quote_in(step, mid)?;
+            if out >= asset_out {
+                hi = mid;
+            } else {
+                lo = mid + 1;
+            }
+        }
+
+        Ok(lo)
+    }
+
     //Simulates the entire curve stack in wasm so node can cal this uber fast vroom vroom
     pub fn simulate_mints(&self, mints: &[u128]) -> Result<Vec<(u128, u128)>, CurveError> {
         let mut current_step: u128 = 0;
