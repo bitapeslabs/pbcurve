@@ -116,6 +116,16 @@ impl WasmCurve {
         Ok(quote.to_string())
     }
 
+    /// Cumulative sats raised up to the provided step.
+    pub fn cumulative_quote_to_step(&self, step: String) -> Result<String, JsValue> {
+        let step_u = parse_u128_dec(&step)?;
+        let total = self
+            .inner
+            .cumulative_quote_to_step(step_u)
+            .map_err(|e| e.to_js())?;
+        Ok(total.to_string())
+    }
+
     /// Simulate a batch of mints.
     ///
     /// `mints` is an array of decimal-string u128 sats_in values.

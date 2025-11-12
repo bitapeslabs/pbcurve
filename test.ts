@@ -18,6 +18,11 @@ async function main() {
 
   console.log("x0 =", snap.x.toString());
   console.log("y0 =", snap.y.toString());
+
+  let cum = curve
+    .cumulativeQuoteToStep(720_000_000n * DECIMALS)
+    .expect("cumulative quote failed");
+  console.log("cumulative quote to step 100M =", (cum / DECIMALS).toString());
 }
 
 main().catch(console.error);

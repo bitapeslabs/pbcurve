@@ -26,6 +26,7 @@ export interface CurveWasmLike {
   progress_at_step(step: string): string;
   asset_out_given_quote_in(step: string, quote_in: string): string;
   quote_in_given_asset_out(step: string, asset_out: string): string;
+  cumulative_quote_to_step(step: string): string;
   simulate_mints(mints: string[]): CurveWasmMintResult[];
 }
 
@@ -43,7 +44,7 @@ export function createCurveClass<
   class CurveImpl {
     readonly #inner: Inner;
 
-    private constructor(inner: Inner) {
+    constructor(inner: Inner) {
       this.#inner = inner;
     }
 
@@ -91,6 +92,22 @@ export function createCurveClass<
         return Err<PbCurveWrapperErrorType>(
           `Failed to compute total raise: ${toErrorMessage(e)}`,
           "CurveFinalMcError"
+        );
+      }
+    }
+
+    cumulativeQuoteToStep(step: bigint): PbCurveResult<bigint> {
+      try {
+        const value = BigInt(
+          this.#inner.cumulative_quote_to_step(u128ToString(step))
+        );
+        return Ok<bigint, PbCurveWrapperErrorType>(value);
+      } catch (e) {
+        return Err<PbCurveWrapperErrorType>(
+          `Failed to compute cumulative quote at step=${step.toString()}: ${toErrorMessage(
+            e
+          )}`,
+          "CurveCumulativeQuoteError"
         );
       }
     }

@@ -1,5 +1,12 @@
 import { createCurveClass } from "./bindings";
 import { u128ToString } from "./utils";
+export type {
+  IPbCurveConfig,
+  IPbCurveMintResult,
+  IPbCurveSnapshot,
+  PbCurveResult,
+  PbCurveWrapperErrorType,
+} from "./types";
 
 type CurveWasmModule = typeof import("../native/pkg-web/curve_wasm.js");
 type WebWasmInitSource = Parameters<CurveWasmModule["default"]>[0];
@@ -43,3 +50,5 @@ export const Curve = createCurveClass<WasmCurve, WebWasmInitSource>({
     );
   },
 });
+
+export type ICurve = InstanceType<typeof Curve>;

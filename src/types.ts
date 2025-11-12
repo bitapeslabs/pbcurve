@@ -32,6 +32,7 @@ export type PbCurveWrapperErrorType =
   | "CurveProgressError"
   | "CurveSimulateMintsError"
   | "CurveAssetOutError"
-  | "CurveQuoteInError";
+  | "CurveQuoteInError"
+  | "CurveCumulativeQuoteError";
 
 export type PbCurveResult<T> = BoxedResponse<T, PbCurveWrapperErrorType>;

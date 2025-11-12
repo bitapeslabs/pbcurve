@@ -1,6 +1,13 @@
 import * as curveWasm from "../native/pkg/curve_wasm";
 import { createCurveClass } from "./bindings";
 import { u128ToString } from "./utils";
+export type {
+  IPbCurveConfig,
+  IPbCurveMintResult,
+  IPbCurveSnapshot,
+  PbCurveResult,
+  PbCurveWrapperErrorType,
+} from "./types";
 
 type WasmCurve = typeof curveWasm.WasmCurve extends { new (...args: any): any }
   ? InstanceType<typeof curveWasm.WasmCurve>
@@ -17,3 +24,5 @@ export const Curve = createCurveClass<WasmCurve>({
     ) as WasmCurve;
   },
 });
+
+export type ICurve = InstanceType<typeof Curve>;

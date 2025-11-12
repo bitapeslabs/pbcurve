@@ -266,6 +266,12 @@ impl Curve {
         Ok(results)
     }
 
+    /// Total sats raised up to a specific step.
+    pub fn cumulative_quote_to_step(&self, step: u128) -> Result<u128, CurveError> {
+        let snap = self.snapshot(step)?;
+        Ok(snap.x.saturating_sub(self.x0))
+    }
+
     /// Helper: total sats raised if we sell the full window [0 -> sellable_tokens].
     /// total_supplyhis is "curve-native": X_final - X0, where X_final = floor(k / vt).
     pub fn total_raise_sats(&self) -> u128 {
