@@ -1,5 +1,5 @@
 [package]
-name = "curve_wasm"
+name = "pbcurve"
 version = "0.1.0"
 edition = "2021"
 description = "General purpose bonding curve library for pizza.fun"
