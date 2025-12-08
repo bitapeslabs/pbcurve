@@ -1,12 +1,11 @@
 // src/wasm.rs
 
-use crate::curve::{Curve, CurveConfig, CurveError};
+use pbcurve::{Curve, CurveConfig, CurveError};
 use wasm_bindgen::prelude::*;
 
-impl CurveError {
-    fn to_js(self) -> JsValue {
-        JsError::new(&format!("CurveError::{:?}", self)).into()
-    }
+/// Convert CurveError (from external crate) into a JsValue.
+fn curve_error_to_js(err: CurveError) -> JsValue {
+    JsError::new(&format!("CurveError::{:?}", err)).into()
 }
 
 fn parse_u128_dec(s: &str) -> Result<u128, JsValue> {
@@ -53,14 +52,14 @@ impl WasmCurve {
             mc_target_sats: parse_u128_dec(&mc_target_sats)?,
         };
 
-        let inner = Curve::new(cfg).map_err(|e| e.to_js())?;
+        let inner = Curve::new(cfg).map_err(curve_error_to_js)?;
         Ok(WasmCurve { inner })
     }
 
     /// Snapshot at given step (step as decimal string).
     pub fn snapshot(&self, step: String) -> Result<WasmCurveSnapshot, JsValue> {
         let step_u = parse_u128_dec(&step)?;
-        let snap = self.inner.snapshot(step_u).map_err(|e| e.to_js())?;
+        let snap = self.inner.snapshot(step_u).map_err(curve_error_to_js)?;
 
         Ok(WasmCurveSnapshot {
             step: snap.step.to_string(),
@@ -76,7 +75,7 @@ impl WasmCurve {
 
     /// Final MC in sats, as decimal string (u128).
     pub fn final_mc_sats(&self) -> Result<String, JsValue> {
-        let v = self.inner.final_mc_sats().map_err(|e| e.to_js())?;
+        let v = self.inner.final_mc_sats().map_err(curve_error_to_js)?;
         Ok(v.to_string())
     }
 
@@ -86,7 +85,7 @@ impl WasmCurve {
         let mc = self
             .inner
             .mc_sats_at_step(step_u)
-            .map_err(|e| e.to_js())?;
+            .map_err(curve_error_to_js)?;
         Ok(mc.to_string())
     }
 
@@ -107,7 +106,7 @@ impl WasmCurve {
         let out = self
             .inner
             .asset_out_given_quote_in(step_u, quote_u)
-            .map_err(|e| e.to_js())?;
+            .map_err(curve_error_to_js)?;
         Ok(out.to_string())
     }
 
@@ -122,7 +121,7 @@ impl WasmCurve {
         let quote = self
             .inner
             .quote_in_given_asset_out(step_u, asset_u)
-            .map_err(|e| e.to_js())?;
+            .map_err(curve_error_to_js)?;
         Ok(quote.to_string())
     }
 
@@ -132,7 +131,7 @@ impl WasmCurve {
         let total = self
             .inner
             .cumulative_quote_to_step(step_u)
-            .map_err(|e| e.to_js())?;
+            .map_err(curve_error_to_js)?;
         Ok(total.to_string())
     }
 
@@ -145,7 +144,10 @@ impl WasmCurve {
             parsed.push(parse_u128_dec(s)?);
         }
 
-        let res = self.inner.simulate_mints(&parsed).map_err(|e| e.to_js())?;
+        let res = self
+            .inner
+            .simulate_mints(&parsed)
+            .map_err(curve_error_to_js)?;
         let mut out: Vec<MintResult> = Vec::with_capacity(res.len());
 
         for (start_step, tokens_out) in res.into_iter() {
